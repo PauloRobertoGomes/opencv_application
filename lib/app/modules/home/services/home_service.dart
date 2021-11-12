@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:opencv/opencv.dart';
@@ -11,10 +13,13 @@ part 'home_service.g.dart';
 class HomeService extends Disposable {
   //dispose will be called automatically
 
-  static Future<dynamic> applyFilter(
-      {String selectedFilter, File image}) async {
+  static Future<dynamic> applyFilter({
+    String selectedFilter,
+    File image,
+  }) async {
     dynamic res;
     try {
+      var img = await decodeImageFromList(image.readAsBytesSync());
       switch (selectedFilter) {
         case 'blur':
           res = await ImgProc.blur(await image.readAsBytes(), [45, 45],
@@ -53,16 +58,22 @@ class HomeService extends Disposable {
               await image.readAsBytes(), ImgProc.morphTopHat, [5, 5]);
           break;
         case 'pyrUp':
-          res = await ImgProc.pyrUp(await image.readAsBytes(),
-              [563 * 2, 375 * 2], Core.borderDefault);
+          res = await ImgProc.pyrUp(
+            image.readAsBytesSync(),
+            [img.width * 2, img.height * 2],
+            Core.borderDefault,
+          );
           break;
         case 'pyrDown':
-          res = await ImgProc.pyrDown(await image.readAsBytes(),
-              [563 ~/ 2.toInt(), 375 ~/ 2.toInt()], Core.borderDefault);
+          res = await ImgProc.pyrDown(
+            image.readAsBytesSync(),
+            [img.width ~/ 2.toInt(), img.height ~/ 2.toInt()],
+            Core.borderDefault,
+          );
           break;
         case 'pyrMeanShiftFiltering':
           res = await ImgProc.pyrMeanShiftFiltering(
-              await image.readAsBytes(), 10, 15);
+              await image.readAsBytes(), 30, 25);
           break;
         case 'threshold':
           res = await ImgProc.threshold(
